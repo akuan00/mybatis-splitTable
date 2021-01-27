@@ -1,5 +1,6 @@
-package com.qinkuan.split.split;
+package com.qinkuan.split.model;
 
+import com.qinkuan.split.type.SplitType;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by qinkuan on 2019/5/8.
@@ -40,7 +41,8 @@ public class ApplicationTests {
 
     @Test
     public void testFind(){
-        User u=userService.findById(1L);
+//        User u=userService.findById(1L);
+        List<User> u=userService.findByJoon();
         System.out.println(u);
     }
 

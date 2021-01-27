@@ -5,6 +5,8 @@ import com.qinkuan.split.mapper.IMapper;
 import com.qinkuan.split.model.BaseModel;
 import com.qinkuan.split.model.Pager;
 import com.qinkuan.split.provider.SqlProvider;
+import com.qinkuan.split.type.SplitType;
+import com.qinkuan.split.util.DateUtil;
 import org.apache.ibatis.jdbc.SQL;
 
 import java.io.Serializable;
@@ -28,64 +30,104 @@ public abstract class AbstractMapperService<T extends BaseModel, ID extends Seri
     protected abstract String cacheNamespace();
 
     protected abstract IMapper getMapper();
+    /**
+     * 分表策略
+     * @return
+     */
+    protected abstract SplitType getSplitType();
 
     /**
      * 获取表名
      * @return
      */
-    protected  String getTableName(){
-         if (classz.isAnnotationPresent(Table.class)){
+    protected  String getTableName(ID id){
+        String tableName = null;
+        if (classz.isAnnotationPresent(Table.class)){
              Table table = (Table)classz.getAnnotation(Table.class);
-             return table.name();
+             tableName = table.name();
+         }else {
+             tableName = SqlProvider.humpToLine(classz.getSimpleName());
          }
-         return SqlProvider.humpToLine(classz.getSimpleName());
+         if (getSplitType() != null) {
+             if (getSplitType() == SplitType.DATE) {
+                tableName += DateUtil.formatDate2(DateUtil.nowMillis());
+             } else if (getSplitType() == SplitType.ID_RANG) {
+
+             } else if (getSplitType() == SplitType.ID_HASH) {
+                tableName += ((Long)id%10);
+             }
+         }
+        System.out.println(" tableName================"+tableName);
+        return tableName;
     }
 
 
-    public T findOneByParam(Map<String,Object> wheres){
-        return   (T)getMapper().findOneByParam(getTableName(),wheres);
+    public T findOne(Map<String,Object> wheres){
+        String[] tableNames = null;//getAllTableName()
+        T t = null;
+        for (int i = 0; i < tableNames.length; i++) {
+            t = (T)getMapper().findOne(tableNames[i],wheres);
+            if (t != null){
+                return t;
+            }
+        }
+        return null;
     }
 
-    public  List<T> findMultiByParam( Map<String,Object> wheres,int limit){
-        return (List<T>) getMapper().findMultiByParam(getTableName(),wheres,limit);
-    }
 
     public T get(ID id) {
         return findById(id);
     }
 
     public T findById(ID id) {
-        return (T)getMapper().findById(getTableName(),id);
+        return (T)getMapper().findById(getTableName(id),id);
     }
 
+    /**
+     * ID自增
+     * @param t
+     * @return
+     */
+    public T saveAutoKey(T t) {
+        getMapper().saveAutoKey(getTableName(null),t);
+        return t;
+    }
+
+    /**
+     * 指定ID
+     * @param t
+     * @return
+     */
     public T save(T t) {
-        getMapper().save(getTableName(),t);
+        getMapper().save(getTableName((ID) SqlProvider.getFieldID(t)),t);
         return t;
     }
 
     public T update(T t) {
-         getMapper().update(getTableName(),t);
-         return t;
+        getMapper().update(getTableName((ID) SqlProvider.getFieldID(t)),t);
+        return t;
     }
 
-
+    public int updateSelective(ID id,Map<String, Object> sets, Map<String, Object> wheres) {
+        return getMapper().updateSelective(getTableName(id),sets,wheres);
+    }
 
     public Integer deleteById(ID id) {
-       return getMapper().deleteById(getTableName(),id);
+       return getMapper().deleteById(getTableName(id),id);
     }
 
 
 
     public List<T> saveAll(List<T> list) {
         list.forEach(it->{
-            getMapper().save(getTableName(),it);
+            getMapper().save(getTableName((ID) SqlProvider.getFieldID(it)),it);
         });
         return list;
     }
 
     public Pager<T> page(Pager<T> pager){
         SQL sql = new SQL();
-        String tName = getTableName();
+        String tName = getTableName(null);
 
         sql.SELECT("*").FROM(tName);
         addQueryParams(sql,pager.getParams());

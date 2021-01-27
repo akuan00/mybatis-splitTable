@@ -1,6 +1,7 @@
 package com.qinkuan.split.demo.model;
 
 import com.qinkuan.split.annotation.Table;
+import com.qinkuan.split.annotation.Transient;
 import com.qinkuan.split.model.BaseModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,4 +26,7 @@ public class User   extends BaseModel {
     String icon; //用户头像
 
     int departmentId;
+
+    @Transient
+    String departmentName;
 }

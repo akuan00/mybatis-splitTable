@@ -1,6 +1,6 @@
 package com.qinkuan.split;
 
-import com.qinkuan.split.split.Strategy;
+import com.qinkuan.split.model.Strategy;
 
 import java.util.HashMap;
 import java.util.Map;

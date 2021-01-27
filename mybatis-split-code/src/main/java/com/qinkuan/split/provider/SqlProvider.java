@@ -4,7 +4,6 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.jdbc.SQL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -82,26 +81,7 @@ public class SqlProvider {
     }
 
 
-    /**
-     * 查询多条
-     * @param tableName
-     * @param wheres
-     * @return
-     */
-    public String findByMultiByParam(@Param("tableName") String tableName, @Param("wheres")Map<String,Object> wheres,@Param("order")String order,@Param("limit")int limit){
-        SQL sql = new SQL();
-        sql.SELECT("* ");
-        sql.FROM(tableName);
-        wheres.keySet().forEach(it->{
-            sql.WHERE(humpToLine(it)+"=#{wheres["+it+"]}");
-        });
-        if (!StringUtils.isEmpty(order)){
-            sql.ORDER_BY(humpToLine(order));
-        }
-        sql.LIMIT(limit);
-        logger.debug("findByMultiByParam sql={}",sql.toString());
-        return sql.toString();
-    }
+
 
     /**
      * 查询1条
@@ -109,7 +89,7 @@ public class SqlProvider {
      * @param wheres
      * @return
      */
-    public String findByOneByParam(@Param("tableName") String tableName, @Param("wheres")Map<String,Object> wheres){
+    public String findOne(@Param("tableName") String tableName, @Param("wheres")Map<String,Object> wheres){
         SQL sql = new SQL();
         sql.SELECT("* ");
         sql.FROM(tableName);
