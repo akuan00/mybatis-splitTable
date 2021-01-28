@@ -20,7 +20,7 @@ public class UserService extends AbstractMapperService<User, Long> {
 
     @Override
     protected SplitType getSplitType() {
-        return SplitType.ID_HASH;
+        return SplitType.ID_RANG;
     }
 
 

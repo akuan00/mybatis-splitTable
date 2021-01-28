@@ -15,4 +15,13 @@ public class SplitTables {
     public static void setSplitStrategyMap(Map<String, Strategy> splitStrategyMap) {
         SplitTables.splitStrategyMap = splitStrategyMap;
     }
+
+    public static void putStrategy(String tableName,Strategy strategy){
+        splitStrategyMap.put(tableName,strategy);
+    }
+
+    public static  Strategy getSplitStrategy(String key) {
+        return splitStrategyMap.get(key);
+    }
+
 }

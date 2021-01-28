@@ -78,7 +78,15 @@ public class DateUtil {
     public static long nowMillis() {
         return System.currentTimeMillis();
     }
-
+    /**
+     * 当前时间
+     *
+     * @return
+     */
+    public static Date nowDate() {
+        ZonedDateTime zonedDateTime = LocalDateTime.now().atZone(ZoneId.systemDefault());
+        return Date.from(zonedDateTime.toInstant());
+    }
 
     /**
      * 获取年
@@ -387,6 +395,7 @@ public class DateUtil {
 
 
     public static void main(String... v) {
+        System.out.println(505000001/50000000);
   }
 
 }

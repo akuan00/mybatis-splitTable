@@ -1,9 +1,11 @@
 package com.qinkuan.split.service;
 
+import com.qinkuan.split.SplitTables;
 import com.qinkuan.split.annotation.Table;
 import com.qinkuan.split.mapper.IMapper;
 import com.qinkuan.split.model.BaseModel;
 import com.qinkuan.split.model.Pager;
+import com.qinkuan.split.model.Strategy;
 import com.qinkuan.split.provider.SqlProvider;
 import com.qinkuan.split.type.SplitType;
 import com.qinkuan.split.util.DateUtil;
@@ -17,9 +19,11 @@ import java.util.Map;
 /**
  * @author: qinkuan
  * @date: 2020/12/7 21:52.
- * 不需要分表的继承此类
+ * 数据库操作Service继承此类
  */
 public abstract class AbstractMapperService<T extends BaseModel, ID extends Serializable> {
+
+    private static final String separator = "_";
 
     protected Class classz = (Class)((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 
@@ -49,12 +53,19 @@ public abstract class AbstractMapperService<T extends BaseModel, ID extends Seri
              tableName = SqlProvider.humpToLine(classz.getSimpleName());
          }
          if (getSplitType() != null) {
+             Strategy splitStrategy = SplitTables.getSplitStrategy(tableName);
+             if (splitStrategy == null){
+                 splitStrategy = Strategy.getDefult(getSplitType());
+             }
              if (getSplitType() == SplitType.DATE) {
-                tableName += DateUtil.formatDate2(DateUtil.nowMillis());
+                tableName += (separator + DateUtil.format(DateUtil.nowDate(),splitStrategy.getFormatStr()));
              } else if (getSplitType() == SplitType.ID_RANG) {
-
+                 long count = splitStrategy.getCount();
+                 Long nowId = (Long) id ;
+                 tableName += (separator+ (nowId / count));
              } else if (getSplitType() == SplitType.ID_HASH) {
-                tableName += ((Long)id%10);
+                 long count = splitStrategy.getCount();
+                 tableName += (separator + ((Long)id % count));
              }
          }
         System.out.println(" tableName================"+tableName);
