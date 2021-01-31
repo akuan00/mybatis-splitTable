@@ -37,7 +37,8 @@ mybatis工具＋分表
   
     
 #自定义分表策略 配置SplitConfig
-    如用户ID段分表，每10条记录一个表
+
+     如用户ID段分表，每10条记录一个表
      Strategy userStrategy = new Strategy();
      userStrategy.setTableName("user_info");
      userStrategy.setType(SplitType.ID_RANG);
