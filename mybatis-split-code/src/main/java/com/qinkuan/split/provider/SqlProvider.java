@@ -1,5 +1,7 @@
 package com.qinkuan.split.provider;
 
+import com.qinkuan.split.query.CriteriaQuery;
+import com.qinkuan.split.query.MultiParamQuery;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.jdbc.SQL;
 import org.slf4j.Logger;
@@ -67,15 +69,17 @@ public class SqlProvider {
      * @param wheres
      * @return
      */
-    public String  updateSelective(@Param("tableName") String tableName, @Param("sets")Map<String,Object> sets, @Param("wheres")Map<String,Object> wheres){
+    public String  updateSelective(@Param("tableName") String tableName, @Param("sets")Map<String,Object> sets, @Param("wheres")MultiParamQuery wheres){
         SQL sql = new SQL();
         sql.UPDATE(tableName);
         sets.keySet().forEach(it->{
             sql.SET(humpToLine(it)+"=#{sets["+it+"]}");
         });
-        wheres.keySet().forEach(it->{
-            sql.WHERE(humpToLine(it)+"=#{wheres["+it+"]}");
-        });
+
+        for (int i = 0; i < wheres.getQueries().size(); i++) {
+            CriteriaQuery it = wheres.getQueries().get(i);
+            sql.WHERE(humpToLine(it.getKey())+  it.getQueryType().getValue()+"#{wheres.queries["+i+"].value}");
+        }
         logger.debug("updateFieldBy sql={}",sql.toString());
         return sql.toString();
     }
@@ -89,15 +93,17 @@ public class SqlProvider {
      * @param wheres
      * @return
      */
-    public String findOne(@Param("tableName") String tableName, @Param("wheres")Map<String,Object> wheres){
+    public String findOne(@Param("tableName") String tableName, @Param("wheres")MultiParamQuery wheres){
         SQL sql = new SQL();
         sql.SELECT("* ");
         sql.FROM(tableName);
-        wheres.keySet().forEach(it->{
-            sql.WHERE(humpToLine(it)+"=#{wheres["+it+"]}");
-        });
+        for (int i = 0; i < wheres.getQueries().size(); i++) {
+            CriteriaQuery it = wheres.getQueries().get(i);
+            sql.WHERE(humpToLine(it.getKey()) + it.getQueryType().getValue() + "#{wheres.queries[" + i + "].value}");
+         }
+
         sql.LIMIT(1);
-        logger.debug("findByOneByParam sql={}",sql.toString());
+        logger.debug("findOne sql={}",sql.toString());
         return sql.toString();
     }
 

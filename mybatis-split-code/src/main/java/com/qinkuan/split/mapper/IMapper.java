@@ -2,6 +2,7 @@ package com.qinkuan.split.mapper;
 
 import com.qinkuan.split.model.BaseModel;
 import com.qinkuan.split.provider.SqlProvider;
+import com.qinkuan.split.query.MultiParamQuery;
 import org.apache.ibatis.annotations.*;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +28,7 @@ public interface IMapper<T extends BaseModel, ID extends Serializable>  {
     T findById(@Param("tableName") String tableName, @Param("id") ID id);
 
     @SelectProvider(type = SqlProvider.class,method = "findOne")
-    T findOne(@Param("tableName") String tableName, @Param("wheres") Map<String, Object> wheres);
+    T findOne(@Param("tableName") String tableName, @Param("wheres") MultiParamQuery wheres);
 
     @Transactional
     @InsertProvider(type = SqlProvider.class,method = "insert")
@@ -65,7 +66,7 @@ public interface IMapper<T extends BaseModel, ID extends Serializable>  {
      */
     @Transactional
     @UpdateProvider(type = SqlProvider.class,method = "updateSelective")
-    Integer updateSelective(@Param("tableName") String tableName, @Param("sets") Map<String, Object> sets, @Param("wheres") Map<String, Object> wheres);
+    Integer updateSelective(@Param("tableName") String tableName, @Param("sets") Map<String, Object> sets, @Param("wheres") MultiParamQuery wheres);
 
 
 }

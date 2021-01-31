@@ -7,6 +7,7 @@ import com.qinkuan.split.model.BaseModel;
 import com.qinkuan.split.model.Pager;
 import com.qinkuan.split.model.Strategy;
 import com.qinkuan.split.provider.SqlProvider;
+import com.qinkuan.split.query.MultiParamQuery;
 import com.qinkuan.split.type.SplitType;
 import com.qinkuan.split.util.DateUtil;
 import org.apache.ibatis.jdbc.SQL;
@@ -40,22 +41,44 @@ public abstract class AbstractMapperService<T extends BaseModel, ID extends Seri
      */
     protected abstract SplitType getSplitType();
 
+    protected String[] getAllTableName(){
+        String[] tables = null;
+        String tableName  = getAnnotationTableName();
+        if (getSplitType() != null){
+            Strategy splitStrategy = SplitTables.getSplitStrategy(tableName);
+            if (splitStrategy == null){
+                splitStrategy = Strategy.getDefault(getSplitType());
+            }
+            if (getSplitType() == SplitType.DATE) {
+                tableName += (separator + DateUtil.format(DateUtil.nowDate(),splitStrategy.getFormatStr()));
+                tables = new String[]{tableName};
+                //todo
+            } else if (getSplitType() == SplitType.ID_RANG) {
+                tables = new String[]{tableName};
+                //todo 获取当前表最大ID，计算出表个数
+            } else if (getSplitType() == SplitType.ID_HASH) {
+                long count = splitStrategy.getCount();
+                tables = new String[(int)count];
+                for (int i = 0; i < count; i++) {
+                   tables[i] = (tableName += (separator + i));
+                }
+            }
+            return tables;
+        }else {
+            return new String[]{tableName};
+        }
+    }
+
     /**
      * 获取表名
      * @return
      */
     protected  String getTableName(ID id){
-        String tableName = null;
-        if (classz.isAnnotationPresent(Table.class)){
-             Table table = (Table)classz.getAnnotation(Table.class);
-             tableName = table.name();
-         }else {
-             tableName = SqlProvider.humpToLine(classz.getSimpleName());
-         }
-         if (getSplitType() != null) {
+        String tableName  = getAnnotationTableName();
+        if (getSplitType() != null) {
              Strategy splitStrategy = SplitTables.getSplitStrategy(tableName);
              if (splitStrategy == null){
-                 splitStrategy = Strategy.getDefult(getSplitType());
+                 splitStrategy = Strategy.getDefault(getSplitType());
              }
              if (getSplitType() == SplitType.DATE) {
                 tableName += (separator + DateUtil.format(DateUtil.nowDate(),splitStrategy.getFormatStr()));
@@ -72,9 +95,20 @@ public abstract class AbstractMapperService<T extends BaseModel, ID extends Seri
         return tableName;
     }
 
+    private String getAnnotationTableName() {
+        String tableName;
+        if (classz.isAnnotationPresent(Table.class)){
+             Table table = (Table)classz.getAnnotation(Table.class);
+             tableName = table.name();
+         }else {
+             tableName = SqlProvider.humpToLine(classz.getSimpleName());
+         }
+        return tableName;
+    }
 
-    public T findOne(Map<String,Object> wheres){
-        String[] tableNames = null;//getAllTableName()
+
+    public T findOne(MultiParamQuery wheres){
+        String[] tableNames = getAllTableName();
         T t = null;
         for (int i = 0; i < tableNames.length; i++) {
             t = (T)getMapper().findOne(tableNames[i],wheres);
@@ -119,7 +153,14 @@ public abstract class AbstractMapperService<T extends BaseModel, ID extends Seri
         return t;
     }
 
-    public int updateSelective(ID id,Map<String, Object> sets, Map<String, Object> wheres) {
+    /**
+     * 局部修改
+     * @param id
+     * @param sets
+     * @param wheres
+     * @return
+     */
+    public int updateSelective(ID id,Map<String, Object> sets, MultiParamQuery wheres) {
         return getMapper().updateSelective(getTableName(id),sets,wheres);
     }
 

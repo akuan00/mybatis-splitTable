@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * Created by qinkuan on 2020/12/31.
- * 分表规则
+ * 指定每个表分表规则，不指定使用Strategy.default
  */
 public class SplitTables {
     private static Map<String,Strategy> splitStrategyMap = new HashMap<>();

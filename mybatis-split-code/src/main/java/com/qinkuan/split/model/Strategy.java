@@ -31,7 +31,7 @@ public class Strategy {
      * @param type
      * @return
      */
-    public static Strategy getDefult(SplitType type){
+    public static Strategy getDefault(SplitType type){
         Strategy strategy = new Strategy();
         if (type == SplitType.DATE){
             strategy.setFormatStr(DateUtil.DATE2);
